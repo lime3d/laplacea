@@ -1,0 +1,108 @@
+<html>
+<body>
+Podaj wielkość macierzy kwadratowej:
+<select id="wielkosc"> 
+	<option value="2">2x2</option> 
+	<option value="3">3x3</option> 
+</select>
+<br>
+<button onclick='dodaj_macierz();'>Prześlij</button>
+<div id='macierz'></div>
+<div id='wynik'></div>
+</body>
+<script>
+	var globalny_licznik = 0;
+	var wymiar = 0;
+	var globalny_wspolczynnik = 0;
+	pole = new Array();
+		for (i = 0; i < 10000; i++) {
+            pole[i] = [];
+        }
+	function dodaj_macierz(){
+		wielkosc = document.getElementById('wielkosc').value;
+		globalny_licznik += parseInt(wielkosc);
+		macierz_html = "<form><table>";
+		for(i = 0; i < wielkosc; i++){
+			macierz_html += "<tr>";
+				for(y = 0; y < wielkosc; y++){
+					id = parseInt(wielkosc)*i;
+					id += y;
+					macierz_html += "<td><input type='text' value='0' id='"+id+"'></td>";
+				}
+			macierz_html += "</tr>";
+		}
+		macierz_html += "</table></form><button onclick='oblicz();'>Gotowe</button>";
+		document.getElementById('macierz').innerHTML = macierz_html;
+	}
+	function oblicz(){
+		wielkosc = document.getElementById('wielkosc').value;
+		for (y = 0; y < wielkosc; y++) {
+			for(i = 0; i < wielkosc; i++){
+				id = parseInt(wielkosc)*y;
+				id += i;
+				pole[y][i] = new Wiersz(y+1,i+1,document.getElementById(id).value);
+			}
+		}
+		etap_koncowy = new Obiekt_liczacy(wielkosc,0);
+		wzor = etap_koncowy.licz();
+		document.getElementById('wynik').innerHTML = wzor;
+	}
+	function Wiersz(wiersz, kolumna, wart_object){
+		this.wiersz = wiersz;
+		this.kolumna = kolumna;
+		this.wart = wart_object;
+	}
+	function Obiekt_liczacy(wielkosc, parametr_dodatni){
+		this.wielkosc = wielkosc;
+		this.dodaj = parametr_dodatni;
+		this.licz = function (){
+			var wzor = 0;
+			var znalezione = [];
+			for(i = 0; i < wielkosc; i++){
+				znalezione[0] = "";
+				for (a = 0; a < wielkosc; a++) {
+					for(b = 0; b < wielkosc; b++){
+						if(pole[a+this.dodaj][b].wiersz!=pole[0+this.dodaj][i].wiersz){
+							if(pole[a+this.dodaj][b].kolumna!=pole[0+this.dodaj][i].kolumna){
+								znalezione[0] += pole[a+this.dodaj][b].wart + ",";
+							}
+						}
+					}
+				}
+				var podzielone_znalezione = znalezione[0].split(",");
+				if((podzielone_znalezione.length-1) <= 2){
+					wzor += (parseInt(pole[0+this.dodaj][i].wart)*Math.pow(-1, (pole[0+this.dodaj][i].wiersz)+pole[0+this.dodaj][i].kolumna)*podzielone_znalezione[0]);		
+				}
+				else{
+					var etap_wtorny = new Array();
+					var licznik = 0;
+					var lokalizacja3 = 0;
+					var wspolczynnik = ((podzielone_znalezione.length-1)/(wielkosc-1));
+					var wspolczynnik2 = 0;
+					for(z = 0; z < podzielone_znalezione.length-1; z++){
+						licznik ++;
+						var lokalizacja = (parseInt(globalny_licznik)+2);
+							lokalizacja2 = (z-wspolczynnik2);
+						if(licznik == wspolczynnik){
+							wspolczynnik2 += wspolczynnik;
+							globalny_licznik ++;
+							licznik = 0;
+						}
+						if(licznik == (wspolczynnik-1)){
+							lokalizacja3 ++;
+						}
+					pole[lokalizacja][lokalizacja2] = new Wiersz(lokalizacja3,lokalizacja2+1,podzielone_znalezione[z]);	
+					}
+				}
+			}
+			if((podzielone_znalezione.length-1) > 2){
+				for(zmienna = 0; zmienna < wielkosc; zmienna++){
+					etap_wtorny[zmienna] = new Obiekt_liczacy(wspolczynnik,parseInt(wielkosc)+2+zmienna*wspolczynnik);
+					wzor += (parseInt(pole[0+this.dodaj][zmienna].wart)*Math.pow(-1, (pole[0+this.dodaj][zmienna].wiersz)+pole[0+this.dodaj][zmienna].kolumna)*etap_wtorny[zmienna].licz());
+				}
+			}
+			return wzor;
+		}
+	}
+</script>
+</html>
